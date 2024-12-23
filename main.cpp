@@ -37,6 +37,10 @@ void queryInfo(std::shared_ptr<tmc::Bidoof::NdbTag>& nt, tmc::Bidoof::NdbTagWeb&
 
 void printTree(tmc::Bidoof::NdbTagWeb& ntw);
 
+void mergeFiles(tmc::Bidoof::NdbTagWeb& in, tmc::Bidoof::NdbTagWeb& out,
+                std::vector<std::string> filter = std::vector<std::string>(),
+                std::shared_ptr<tmc::Bidoof::NdbTag> dest = nullptr, bool prompt = true, bool overwrite = false);
+
 void recursiveTagPrint(std::shared_ptr<tmc::Bidoof::NdbTag>& nt, u64 depth = 0);
 
 int main(int argc, char* argv[])
@@ -232,7 +236,6 @@ int main(int argc, char* argv[])
                         else if (choice == 2)
                         {
                             u8 nndetect = tmc::yesNoPrompt("\nShould this tag indicate libTmcNnDetect protection? ");
-                            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                             tmc::Bidoof::NdbTag::AxceModYum am = nt->getAccessModifier();
                             nt->setAccessModifier(static_cast<tmc::Bidoof::NdbTag::AxceModYum>(
                                 (nndetect << 7) | (am & 3)));
@@ -383,11 +386,48 @@ int main(int argc, char* argv[])
             }
         }
     }
-    else if (!(a.hasArg('t') || a.hasArg('l')) || a.hasArg('h')
+    else if (!(a.hasArg('t') || a.hasArg('m') || a.hasArg('l')) || a.hasArg('h')
                || a.hasArg("--help"))
     {
         printHelp();
         return -1;
+    }
+    else if (a.hasArg('m'))
+    {
+        std::vector<std::string> inpaths = a.getAs<std::vector<std::string>>('m');
+        std::vector<tmc::Bidoof::NdbTagWeb> in;
+        std::vector<std::string> filter;
+        bool overwrite = true;
+        bool prompt = true;
+        if (a.hasArg('s'))
+        {
+            filter = a.getAs<std::vector<std::string>>('s');
+        }
+        std::shared_ptr<tmc::Bidoof::NdbTag> dest = nullptr;
+        tmc::Bidoof::NdbTagWeb out = tmc::Bidoof::NdbTagWeb(a.getFilePaths()[0].string());
+        if (a.hasArg('d'))
+        {
+            dest = out[a.getAs<std::string>('d')];
+        }
+        for (u64 i = 0; i < inpaths.size(); i++)
+        {
+            in.emplace_back(inpaths[i]);
+        }
+        if (a.hasArg('n') || a.hasArg("no"))
+        {
+            overwrite = false;
+            prompt = false;
+        }
+        else if (a.hasArg('y') || a.hasArg("yes"))
+        {
+            prompt = false;
+        }
+        for (u64 i = 0; i < in.size(); i++)
+        {
+            mergeFiles(in[i], out, filter, dest, prompt, overwrite);
+        }
+        printTree(out);
+        out.writeOut();
     }
     else if (a.hasArg('l'))
     {
@@ -518,6 +558,120 @@ int main(int argc, char* argv[])
     return 0;
 }
 
+void mergeFiles(tmc::Bidoof::NdbTagWeb& in, tmc::Bidoof::NdbTagWeb& out,
+                std::vector<std::string> filter,
+                std::shared_ptr<tmc::Bidoof::NdbTag> dest, bool prompt, bool overwrite)
+{
+    if (filter.empty())
+    {
+        if (dest == nullptr)
+        {
+            for (u64 i = 0; i < in.getTopLevelTagCount(); i++)
+            {
+                if (out[in[i]->getTagString()] == nullptr)
+                {
+                    out.addTopLevelTag(in[i]);
+                }
+                else if (prompt)
+                {
+                    overwrite = tmc::yesNoPrompt("\nTag already exists.  Overwrite? ");
+                }
+                if (out[in[i]->getTagString()] != nullptr && overwrite)
+                {
+                    while (out[in[i]->getTagString()]->getChildCount() != 0)
+                    {
+                        removeParentFrom(in[i]->getTagString(), out[in[i]->getTagString()]->getChild(0));
+                    }
+                    out[in[i]->getTagString()] = in[i];
+                }
+                std::cout << "\nMerged " << i << " out of " << in.getTopLevelTagCount();
+            }
+        }
+        else
+        {
+            for (u64 i = 0; i < in.getTopLevelTagCount(); i++)
+            {
+                if (out[in[i]->getTagString()] == nullptr)
+                {
+                    dest->addChild(in[i]);
+                }
+                else if (prompt)
+                {
+                    overwrite = tmc::yesNoPrompt("\nTag already exists.  Overwrite? ");
+                }
+                if (out[in[i]->getTagString()] != nullptr && overwrite)
+                {
+                    auto temp = out[in[i]->getTagString()];
+                    deleteTag(temp, out);
+                    dest->addChild(in[i]);
+                }
+                std::cout << "\nMerged " << i << " out of " << in.getTopLevelTagCount();
+            }
+        }
+    }
+    else
+    {
+        if (dest == nullptr)
+        {
+            for (u64 i = 0; i < filter.size(); i++)
+            {
+                if (in[filter[i]] != nullptr)
+                {
+                    while (in[filter[i]]->getParentCount() != 0)
+                    {
+                        removeChildFrom(filter[i], in[filter[i]]->getParent(0));
+                    }
+                    if (out[filter[i]] == nullptr)
+                    {
+                        out.addTopLevelTag(in[filter[i]]);
+                    }
+                    else if (prompt)
+                    {
+                        overwrite = tmc::yesNoPrompt("\nTag already exists.  Overwrite? ");
+                    }
+                    if (out[filter[i]] != nullptr && overwrite)
+                    {
+                        while (out[filter[i]]->getChildCount() != 0)
+                        {
+                            removeParentFrom(filter[i], out[filter[i]]->getChild(0));
+                        }
+                        out[filter[i]] = in[filter[i]];
+                    }
+                }
+                std::cout << "\nMerged " << i << " out of " << filter.size();
+            }
+        }
+        else
+        {
+            for (u64 i = 0; i < filter.size(); i++)
+            {
+                if (in[filter[i]] != nullptr)
+                {
+                    while (in[filter[i]]->getParentCount() != 0)
+                    {
+                        removeChildFrom(filter[i], in[filter[i]]->getParent(0));
+                    }
+                    if (out[filter[i]] == nullptr)
+                    {
+                        dest->addChild(in[filter[i]]);
+                    }
+                    else if (prompt)
+                    {
+                        overwrite = tmc::yesNoPrompt("\nTag already exists.  Overwrite? ");
+                    }
+                    if (out[filter[i]] != nullptr && overwrite)
+                    {
+                        auto temp = out[in[i]->getTagString()];
+                        deleteTag(temp, out);
+                        dest->addChild(in[filter[i]]);
+                    }
+                }
+                std::cout << "\nMerged " << i << " out of " << filter.size();
+            }
+        }
+    }
+}
+
 void funE()
 {
     std::cout << "Congratulations!  You did a whole lot of nothing!\n";
@@ -526,7 +680,7 @@ void funE()
 void printHelp()
 {
     std::cout << "Usage:\n"
-              << "\ttmcntw-edit\t\t(run in interactive mode)\n"
+              << "\ttmcntw-edit\t\t(run in interactive mode)\n\n"
               << "\ttmcntw-edit -t <TAG> [-arq] [--nndetect TRUE|FALSE]"
               << " [--agegroup SAFE|QUESTIONABLE|EXPLICIT]"
               << " [--addalias <ALIAS>] [--removealias <ALIAS>]"
@@ -535,8 +689,10 @@ void printHelp()
               << " [--orphan] [--addchild <TAG>] [--removechild <TAG>]"
               << " [--endbloodline] [--category COPYRIGHT|AUTHOR|"
               << "CHARACTER|SPECIES|GENERAL|META|LORE]"
-              << " -- <file1> [file2] ...\t\t(run in script mode)\n"
-              << "\ttmcntw-edit -l -- file\t\t(Print file's tag tree)\n"
+              << " -- <file1> [file2] ...\t\t(run in script mode)\n\n"
+              << "\ttmcntw-edit -l -- <FILE>\t\t(Print file's tag tree)\n\n"
+              << "\ttmcntw-edit -m <FILE1> [<FILE2> ...] [-s TAG1 [TAG2 ...]] [-d TAG]"
+              << " [[-y|--yes]|[-n|--no]] -- FILE (run in merge mode)\n\n"
               << "\nEdit .tmcntw files and libTmcAsset formats with bundled tmcntw data\n\n"
               << "-t <TAG>\t\t\tOperate on this tag"
               << "-a\t\t\tadd a new tag specified with -t\t"
@@ -570,6 +726,17 @@ void printHelp()
               << "\tExample: tmcntw-edit -t penis --addchild animal_penis -- balls.tmcntw"
               << "--removechild <CHILD>\t\t\tremoves a child\n"
               << "--endbloodline\t\t\tremoves all children\n"
+              << "-m <FILE1> [FILE2 ...]\t\t\tspecify merge source files\n"
+              << "-s TAG1 [TAG2 ...]\t\t\tfilter to specific tags to merge recursively (forward propagating)\n"
+              << "-d TAG\t\t\tSpecify destination parent\n\tOUTPUT MUST EXIST IF THIS IS SPECIFIED!!!\n"
+              << "-y|--yes\t\t\tOverwrite on conflicts\n"
+              << "\tThis arg is mutually exclusive with -n|--no\n"
+              << "\tIf neither is specified, the user is prompted\n"
+              << "\t(bad for unattended runs)\n"
+              << "-n|--no\t\t\tSkip on conflicts\n"
+              << "\tThis arg is mutually exclusive with -y|--yes\n"
+              << "\tIf neither is specified, the user is prompted\n"
+              << "\t(bad for unattended runs)\n"
               << "-h|--help\t\t\tprint this text\n"
               << "--\t\t\tTreat all arguments after this one as file names.\n"
               << "If file does not exist, it is created.\n";
