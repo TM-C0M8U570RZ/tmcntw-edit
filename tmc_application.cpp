@@ -57,8 +57,9 @@ Application::Application(int argc, char** argv)
     }
 }
 
-Application* Application::getGlobalInstance()
+Application* Application::getGlobalInstance(int argc, char** argv)
 {
+    if (argc != 0 && argv != nullptr) Application* a = new Application(argc, argv);
     return globalInstance;
 }
 
@@ -394,38 +395,6 @@ std::vector<std::filesystem::path> Application::getAs(const std::string& longArg
     for (u64 i = 0; i < longArgs[idx].second.size(); i++)
     {
         result.push_back(std::filesystem::path(longArgs[idx].second[i]));
-    }
-    return result;
-}
-
-template <class T>
-T Application::getAs(const std::string& longArg)
-{
-    T result;
-    u64 idx = std::numeric_limits<u64>::max();
-    for (u64 i = 0; i < longArgs.size(); i++)
-    {
-        if (longArgs[i].first == longArg)
-        {
-            idx = i;
-            break;
-        }
-    }
-    if (idx == std::numeric_limits<u64>::max())
-    {
-        throw(std::runtime_error("Argument not found!"));
-    }
-    if (std::is_signed<T>::value)
-    {
-        result = static_cast<T>(std::stoll(longArgs[idx].second[0]));
-    }
-    else if (std::is_unsigned<T>::value)
-    {
-        result = static_cast<T>(std::stoull(longArgs[idx].second[0]));
-    }
-    else if (std::is_floating_point<T>::value)
-    {
-        result = static_cast<T>(std::stod(longArgs[idx].second[0]));
     }
     return result;
 }
@@ -823,38 +792,6 @@ std::vector<std::filesystem::path> Application::getAs(char shortArg)
     return result;
 }
 
-template <class T>
-T Application::getAs(char shortArg)
-{
-    T result;
-    u64 idx = std::numeric_limits<u64>::max();
-    for (u64 i = 0; i < shortArgs.size(); i++)
-    {
-        if (shortArgs[i].first == shortArg)
-        {
-            idx = i;
-            break;
-        }
-    }
-    if (idx == std::numeric_limits<u64>::max())
-    {
-        throw(std::runtime_error("Argument not found!"));
-    }
-    if (std::is_signed<T>::value)
-    {
-        result = static_cast<T>(std::stoll(shortArgs[idx].second[0]));
-    }
-    else if (std::is_unsigned<T>::value)
-    {
-        result = static_cast<T>(std::stoull(shortArgs[idx].second[0]));
-    }
-    else if (std::is_floating_point<T>::value)
-    {
-        result = static_cast<T>(std::stod(shortArgs[idx].second[0]));
-    }
-    return result;
-}
-
 template <>
 std::string Application::getAs(char shortArg)
 {
@@ -910,6 +847,426 @@ std::filesystem::path Application::getAs(char shortArg)
         throw(std::runtime_error("Argument not found!"));
     }
     return std::filesystem::path(shortArgs[idx].second[0]);
+}
+
+template <>
+u8 Application::getAs(const std::string& longArg)
+{
+    u8 result;
+    u64 idx = std::numeric_limits<u64>::max();
+    for (u64 i = 0; i < longArgs.size(); i++)
+    {
+        if (longArgs[i].first == longArg)
+        {
+            idx = i;
+            break;
+        }
+    }
+    if (idx == std::numeric_limits<u64>::max())
+    {
+        throw(std::runtime_error("Argument not found!"));
+    }
+    result = static_cast<u8>(std::stoull(longArgs[idx].second[0]));
+    return result;
+}
+
+template <>
+u16 Application::getAs(const std::string& longArg)
+{
+    u16 result;
+    u64 idx = std::numeric_limits<u64>::max();
+    for (u64 i = 0; i < longArgs.size(); i++)
+    {
+        if (longArgs[i].first == longArg)
+        {
+            idx = i;
+            break;
+        }
+    }
+    if (idx == std::numeric_limits<u64>::max())
+    {
+        throw(std::runtime_error("Argument not found!"));
+    }
+    result = static_cast<u16>(std::stoull(longArgs[idx].second[0]));
+    return result;
+}
+
+template <>
+u32 Application::getAs(const std::string& longArg)
+{
+    u32 result;
+    u64 idx = std::numeric_limits<u64>::max();
+    for (u64 i = 0; i < longArgs.size(); i++)
+    {
+        if (longArgs[i].first == longArg)
+        {
+            idx = i;
+            break;
+        }
+    }
+    if (idx == std::numeric_limits<u64>::max())
+    {
+        throw(std::runtime_error("Argument not found!"));
+    }
+    result = static_cast<u32>(std::stoull(longArgs[idx].second[0]));
+    return result;
+}
+
+template <>
+u64 Application::getAs(const std::string& longArg)
+{
+    u64 result;
+    u64 idx = std::numeric_limits<u64>::max();
+    for (u64 i = 0; i < longArgs.size(); i++)
+    {
+        if (longArgs[i].first == longArg)
+        {
+            idx = i;
+            break;
+        }
+    }
+    if (idx == std::numeric_limits<u64>::max())
+    {
+        throw(std::runtime_error("Argument not found!"));
+    }
+    result = static_cast<u64>(std::stoull(longArgs[idx].second[0]));
+    return result;
+}
+
+template <>
+s8 Application::getAs(const std::string& longArg)
+{
+    s8 result;
+    u64 idx = std::numeric_limits<u64>::max();
+    for (u64 i = 0; i < longArgs.size(); i++)
+    {
+        if (longArgs[i].first == longArg)
+        {
+            idx = i;
+            break;
+        }
+    }
+    if (idx == std::numeric_limits<u64>::max())
+    {
+        throw(std::runtime_error("Argument not found!"));
+    }
+    result = static_cast<s8>(std::stoll(longArgs[idx].second[0]));
+    return result;
+}
+
+template <>
+s16 Application::getAs(const std::string& longArg)
+{
+    s16 result;
+    u64 idx = std::numeric_limits<u64>::max();
+    for (u64 i = 0; i < longArgs.size(); i++)
+    {
+        if (longArgs[i].first == longArg)
+        {
+            idx = i;
+            break;
+        }
+    }
+    if (idx == std::numeric_limits<u64>::max())
+    {
+        throw(std::runtime_error("Argument not found!"));
+    }
+    result = static_cast<s16>(std::stoll(longArgs[idx].second[0]));
+    return result;
+}
+
+template <>
+s32 Application::getAs(const std::string& longArg)
+{
+    s32 result;
+    u64 idx = std::numeric_limits<u64>::max();
+    for (u64 i = 0; i < longArgs.size(); i++)
+    {
+        if (longArgs[i].first == longArg)
+        {
+            idx = i;
+            break;
+        }
+    }
+    if (idx == std::numeric_limits<u64>::max())
+    {
+        throw(std::runtime_error("Argument not found!"));
+    }
+    result = static_cast<s32>(std::stoll(longArgs[idx].second[0]));
+    return result;
+}
+
+template <>
+s64 Application::getAs(const std::string& longArg)
+{
+    u64 result;
+    u64 idx = std::numeric_limits<s64>::max();
+    for (u64 i = 0; i < longArgs.size(); i++)
+    {
+        if (longArgs[i].first == longArg)
+        {
+            idx = i;
+            break;
+        }
+    }
+    if (idx == std::numeric_limits<u64>::max())
+    {
+        throw(std::runtime_error("Argument not found!"));
+    }
+    result = static_cast<s64>(std::stoll(longArgs[idx].second[0]));
+    return result;
+}
+
+template <>
+f32 Application::getAs(const std::string& longArg)
+{
+    f32 result;
+    u64 idx = std::numeric_limits<s64>::max();
+    for (u64 i = 0; i < longArgs.size(); i++)
+    {
+        if (longArgs[i].first == longArg)
+        {
+            idx = i;
+            break;
+        }
+    }
+    if (idx == std::numeric_limits<u64>::max())
+    {
+        throw(std::runtime_error("Argument not found!"));
+    }
+    result = static_cast<f32>(std::stod(longArgs[idx].second[0]));
+    return result;
+}
+
+template <>
+f64 Application::getAs(const std::string& longArg)
+{
+    f64 result;
+    u64 idx = std::numeric_limits<s64>::max();
+    for (u64 i = 0; i < longArgs.size(); i++)
+    {
+        if (longArgs[i].first == longArg)
+        {
+            idx = i;
+            break;
+        }
+    }
+    if (idx == std::numeric_limits<u64>::max())
+    {
+        throw(std::runtime_error("Argument not found!"));
+    }
+    result = static_cast<f64>(std::stod(longArgs[idx].second[0]));
+    return result;
+}
+
+template <>
+u8 Application::getAs(char shortArg)
+{
+    u8 result;
+    u64 idx = std::numeric_limits<u64>::max();
+    for (u64 i = 0; i < shortArgs.size(); i++)
+    {
+        if (shortArgs[i].first == shortArg)
+        {
+            idx = i;
+            break;
+        }
+    }
+    if (idx == std::numeric_limits<u64>::max())
+    {
+        throw(std::runtime_error("Argument not found!"));
+    }
+    result = static_cast<u8>(std::stoull(shortArgs[idx].second[0]));
+    return result;
+}
+
+template <>
+u16 Application::getAs(char shortArg)
+{
+    u16 result;
+    u64 idx = std::numeric_limits<u64>::max();
+    for (u64 i = 0; i < shortArgs.size(); i++)
+    {
+        if (shortArgs[i].first == shortArg)
+        {
+            idx = i;
+            break;
+        }
+    }
+    if (idx == std::numeric_limits<u64>::max())
+    {
+        throw(std::runtime_error("Argument not found!"));
+    }
+    result = static_cast<u16>(std::stoull(shortArgs[idx].second[0]));
+    return result;
+}
+
+template <>
+u32 Application::getAs(char shortArg)
+{
+    u32 result;
+    u64 idx = std::numeric_limits<u64>::max();
+    for (u64 i = 0; i < shortArgs.size(); i++)
+    {
+        if (shortArgs[i].first == shortArg)
+        {
+            idx = i;
+            break;
+        }
+    }
+    if (idx == std::numeric_limits<u64>::max())
+    {
+        throw(std::runtime_error("Argument not found!"));
+    }
+    result = static_cast<u32>(std::stoull(shortArgs[idx].second[0]));
+    return result;
+}
+
+template <>
+u64 Application::getAs(char shortArg)
+{
+    u64 result;
+    u64 idx = std::numeric_limits<u64>::max();
+    for (u64 i = 0; i < shortArgs.size(); i++)
+    {
+        if (shortArgs[i].first == shortArg)
+        {
+            idx = i;
+            break;
+        }
+    }
+    if (idx == std::numeric_limits<u64>::max())
+    {
+        throw(std::runtime_error("Argument not found!"));
+    }
+    result = static_cast<u64>(std::stoull(shortArgs[idx].second[0]));
+    return result;
+}
+
+template <>
+s8 Application::getAs(char shortArg)
+{
+    s8 result;
+    u64 idx = std::numeric_limits<u64>::max();
+    for (u64 i = 0; i < shortArgs.size(); i++)
+    {
+        if (shortArgs[i].first == shortArg)
+        {
+            idx = i;
+            break;
+        }
+    }
+    if (idx == std::numeric_limits<u64>::max())
+    {
+        throw(std::runtime_error("Argument not found!"));
+    }
+    result = static_cast<s8>(std::stoll(shortArgs[idx].second[0]));
+    return result;
+}
+
+template <>
+s16 Application::getAs(char shortArg)
+{
+    s16 result;
+    u64 idx = std::numeric_limits<u64>::max();
+    for (u64 i = 0; i < shortArgs.size(); i++)
+    {
+        if (shortArgs[i].first == shortArg)
+        {
+            idx = i;
+            break;
+        }
+    }
+    if (idx == std::numeric_limits<u64>::max())
+    {
+        throw(std::runtime_error("Argument not found!"));
+    }
+    result = static_cast<s16>(std::stoll(shortArgs[idx].second[0]));
+    return result;
+}
+
+template <>
+s32 Application::getAs(char shortArg)
+{
+    s32 result;
+    u64 idx = std::numeric_limits<u64>::max();
+    for (u64 i = 0; i < shortArgs.size(); i++)
+    {
+        if (shortArgs[i].first == shortArg)
+        {
+            idx = i;
+            break;
+        }
+    }
+    if (idx == std::numeric_limits<u64>::max())
+    {
+        throw(std::runtime_error("Argument not found!"));
+    }
+    result = static_cast<s32>(std::stoll(shortArgs[idx].second[0]));
+    return result;
+}
+
+template <>
+s64 Application::getAs(char shortArg)
+{
+    s64 result;
+    u64 idx = std::numeric_limits<u64>::max();
+    for (u64 i = 0; i < shortArgs.size(); i++)
+    {
+        if (shortArgs[i].first == shortArg)
+        {
+            idx = i;
+            break;
+        }
+    }
+    if (idx == std::numeric_limits<u64>::max())
+    {
+        throw(std::runtime_error("Argument not found!"));
+    }
+    result = static_cast<s64>(std::stoll(shortArgs[idx].second[0]));
+    return result;
+}
+
+template <>
+f32 Application::getAs(char shortArg)
+{
+    f32 result;
+    u64 idx = std::numeric_limits<u64>::max();
+    for (u64 i = 0; i < shortArgs.size(); i++)
+    {
+        if (shortArgs[i].first == shortArg)
+        {
+            idx = i;
+            break;
+        }
+    }
+    if (idx == std::numeric_limits<u64>::max())
+    {
+        throw(std::runtime_error("Argument not found!"));
+    }
+    result = static_cast<f32>(std::stod(shortArgs[idx].second[0]));
+    return result;
+}
+
+template <>
+f64 Application::getAs(char shortArg)
+{
+    f64 result;
+    u64 idx = std::numeric_limits<u64>::max();
+    for (u64 i = 0; i < shortArgs.size(); i++)
+    {
+        if (shortArgs[i].first == shortArg)
+        {
+            idx = i;
+            break;
+        }
+    }
+    if (idx == std::numeric_limits<u64>::max())
+    {
+        throw(std::runtime_error("Argument not found!"));
+    }
+    result = static_cast<f64>(std::stod(shortArgs[idx].second[0]));
+    return result;
 }
 
 std::vector<char> Application::processShortArgs(std::string shortArgs)

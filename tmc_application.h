@@ -14,9 +14,8 @@ namespace tmc {
 class Application
 {
 public:
-    Application(int argc, char** argv);
 
-    static Application* getGlobalInstance();
+    static Application* getGlobalInstance(int argc = 0, char** argv = nullptr);
 
     template <class T>
     T getAs(const std::string& longArg);
@@ -42,6 +41,7 @@ public:
     std::filesystem::path getExefsDir();
 
 private:
+    Application(int argc, char** argv);
     std::vector<std::string> args;
     std::vector<std::pair<char, std::vector<std::string>>> shortArgs;
     std::vector<std::pair<std::string, std::vector<std::string>>> longArgs;

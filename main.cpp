@@ -45,7 +45,7 @@ void recursiveTagPrint(std::shared_ptr<tmc::Bidoof::NdbTag>& nt, u64 depth = 0);
 
 int main(int argc, char* argv[])
 {
-    tmc::Application a(argc, argv);
+    tmc::Application* a = tmc::Application::getGlobalInstance(argc, argv);
     if (argc == 1)
     {
         std::string path;
@@ -386,39 +386,39 @@ int main(int argc, char* argv[])
             }
         }
     }
-    else if (!(a.hasArg('t') || a.hasArg('m') || a.hasArg('l')) || a.hasArg('h')
-               || a.hasArg("--help"))
+    else if (!(a->hasArg('t') || a->hasArg('m') || a->hasArg('l')) || a->hasArg('h')
+               || a->hasArg("--help"))
     {
         printHelp();
         return -1;
     }
-    else if (a.hasArg('m'))
+    else if (a->hasArg('m'))
     {
-        std::vector<std::string> inpaths = a.getAs<std::vector<std::string>>('m');
+        std::vector<std::string> inpaths = a->getAs<std::vector<std::string>>('m');
         std::vector<tmc::Bidoof::NdbTagWeb> in;
         std::vector<std::string> filter;
         bool overwrite = true;
         bool prompt = true;
-        if (a.hasArg('s'))
+        if (a->hasArg('s'))
         {
-            filter = a.getAs<std::vector<std::string>>('s');
+            filter = a->getAs<std::vector<std::string>>('s');
         }
         std::shared_ptr<tmc::Bidoof::NdbTag> dest = nullptr;
-        tmc::Bidoof::NdbTagWeb out = tmc::Bidoof::NdbTagWeb(a.getFilePaths()[0].string());
-        if (a.hasArg('d'))
+        tmc::Bidoof::NdbTagWeb out = tmc::Bidoof::NdbTagWeb(a->getFilePaths()[0].string());
+        if (a->hasArg('d'))
         {
-            dest = out[a.getAs<std::string>('d')];
+            dest = out[a->getAs<std::string>('d')];
         }
         for (u64 i = 0; i < inpaths.size(); i++)
         {
             in.emplace_back(inpaths[i]);
         }
-        if (a.hasArg('n') || a.hasArg("no"))
+        if (a->hasArg('n') || a->hasArg("no"))
         {
             overwrite = false;
             prompt = false;
         }
-        else if (a.hasArg('y') || a.hasArg("yes"))
+        else if (a->hasArg('y') || a->hasArg("yes"))
         {
             prompt = false;
         }
@@ -429,17 +429,17 @@ int main(int argc, char* argv[])
         printTree(out);
         out.writeOut();
     }
-    else if (a.hasArg('l'))
+    else if (a->hasArg('l'))
     {
-        tmc::Bidoof::NdbTagWeb ntw(a.getFilePaths()[0].string());
+        tmc::Bidoof::NdbTagWeb ntw(a->getFilePaths()[0]);
         printTree(ntw);
     }
     else
     {
-        std::string tagStr = a.getAs<std::string>('t');
+        std::string tagStr = a->getAs<std::string>('t');
         std::shared_ptr<tmc::Bidoof::NdbTag> tag = std::make_shared<tmc::Bidoof::CopywrongTag>(
             tmc::Bidoof::NdbTag::RS, tagStr, std::vector<std::shared_ptr<tmc::Bidoof::NdbTag>>(), std::vector<std::string>());
-        std::vector<std::filesystem::path> scrotum = a.getFilePaths();
+        std::vector<std::filesystem::path> scrotum = a->getFilePaths();
         std::vector<tmc::Bidoof::NdbTagWeb> balls;
         for (const auto& p: scrotum)
         {
@@ -455,7 +455,7 @@ int main(int argc, char* argv[])
         }
         for (u64 i = 0; i < balls.size(); i++)
         {
-            if (a.hasArg('a') && !balls[i].containsTagHierarchy(tagStr))
+            if (a->hasArg('a') && !balls[i].containsTagHierarchy(tagStr))
             {
                 balls[i].addTopLevelTag(tag);
             }
@@ -463,88 +463,88 @@ int main(int argc, char* argv[])
             {
                 tag = balls[i][tagStr];
             }
-            if (a.hasArg("nndetect"))
+            if (a->hasArg("nndetect"))
             {
-                setNndetectEnable(tag, a.getAs<std::string>("nndetect") == "TRUE");
+                setNndetectEnable(tag, a->getAs<std::string>("nndetect") == "TRUE");
             }
-            if (a.hasArg("agegroup"))
+            if (a->hasArg("agegroup"))
             {
-                setAgeGroup(tag, a.getAs<std::string>("agegroup"));
+                setAgeGroup(tag, a->getAs<std::string>("agegroup"));
             }
-            if (a.hasArg("category"))
+            if (a->hasArg("category"))
             {
-                retypeTo(a.getAs<std::string>("category"), tag, balls[i]);
+                retypeTo(a->getAs<std::string>("category"), tag, balls[i]);
             }
-            if (a.hasArg("addalias"))
+            if (a->hasArg("addalias"))
             {
-                tag->addAlias(a.getAs<std::string>("addalias"));
+                tag->addAlias(a->getAs<std::string>("addalias"));
             }
-            if (a.hasArg("removealias"))
+            if (a->hasArg("removealias"))
             {
-                tag->removeAlias(a.getAs<std::string>("removealias"));
+                tag->removeAlias(a->getAs<std::string>("removealias"));
             }
-            if (a.hasArg("addalias") && a.hasArg("removealias") && a.getAs<std::string>("addalias") == a.getAs<std::string>("removealias"))
+            if (a->hasArg("addalias") && a->hasArg("removealias") && a->getAs<std::string>("addalias") == a->getAs<std::string>("removealias"))
             {
                 funE();
             }
-            if (a.hasArg("clearaliases"))
+            if (a->hasArg("clearaliases"))
             {
                 tag->getAliases().clear();
             }
-            if (a.hasArg("addparent"))
+            if (a->hasArg("addparent"))
             {
-                addParentTo(a.getAs<std::string>("addparent"), tag, balls[i]);
+                addParentTo(a->getAs<std::string>("addparent"), tag, balls[i]);
             }
-            if (a.hasArg("removeparent"))
+            if (a->hasArg("removeparent"))
             {
-                removeParentFrom(a.getAs<std::string>("removeparent"), tag);
+                removeParentFrom(a->getAs<std::string>("removeparent"), tag);
             }
-            if (a.hasArg("addparent") && a.hasArg("removeparent") && a.getAs<std::string>("addparent") == a.getAs<std::string>("removeparent"))
+            if (a->hasArg("addparent") && a->hasArg("removeparent") && a->getAs<std::string>("addparent") == a->getAs<std::string>("removeparent"))
             {
                 funE();
             }
-            if (a.hasArg("orphan"))
+            if (a->hasArg("orphan"))
             {
                 while (tag->getParentCount() != 0)
                 {
                     tag->removeParent(0);
                 }
             }
-            if (a.hasArg("addchild"))
+            if (a->hasArg("addchild"))
             {
-                if (balls[i][a.getAs<std::string>("addchild")] != nullptr)
+                if (balls[i][a->getAs<std::string>("addchild")] != nullptr)
                 {
-                    tag->addChild(balls[i][a.getAs<std::string>("addchild")]);
+                    tag->addChild(balls[i][a->getAs<std::string>("addchild")]);
                 }
             }
-            if (a.hasArg("removechild"))
+            if (a->hasArg("removechild"))
             {
                 for (u64 j = 0; j < tag->getChildCount(); j++)
                 {
-                    if (tag->getChild(j)->getTagString() == a.getAs<std::string>("removechild"))
+                    if (tag->getChild(j)->getTagString() == a->getAs<std::string>("removechild"))
                     {
                         tag->removeChild(j);
                         break;
                     }
                 }
             }
-            if (a.hasArg("addchild") && a.hasArg("removechild") && a.getAs<std::string>("addchild") == a.getAs<std::string>("removechild"))
+            if (a->hasArg("addchild") && a->hasArg("removechild") && a->getAs<std::string>("addchild") == a->getAs<std::string>("removechild"))
             {
                 funE();
             }
-            if (a.hasArg("endbloodline"))
+            if (a->hasArg("endbloodline"))
             {
                 while (tag->getChildCount() != 0)
                 {
                     tag->removeChild(0);
                 }
             }
-            if (a.hasArg('r'))
+            if (a->hasArg('r'))
             {
-                if (a.hasArg('a')) funE();
+                if (a->hasArg('a')) funE();
                 if (balls[i].containsTagHierarchy(tag->getTagString())) deleteTag(tag, balls[i]);
             }
-            if (a.hasArg('q'))
+            if (a->hasArg('q'))
             {
                 queryInfo(tag, balls[i]);
             }
@@ -555,6 +555,7 @@ int main(int argc, char* argv[])
         }
         tag = nullptr;
     }
+    delete a;
     return 0;
 }
 
