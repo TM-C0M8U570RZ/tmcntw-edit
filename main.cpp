@@ -431,7 +431,7 @@ int main(int argc, char* argv[])
     }
     else if (a->hasArg('l'))
     {
-        tmc::Bidoof::NdbTagWeb ntw(a->getFilePaths()[0]);
+        tmc::Bidoof::NdbTagWeb ntw(a->getFilePaths()[0].string());
         printTree(ntw);
     }
     else
